@@ -42,5 +42,36 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+        // zx, nx
+        // x에 무엇이 들어오든, zx에 따라 x1을 결정
+        Mux16(a=x, b[0..15]=false, sel=zx, out=x1);
+        // x1의 반전값을 notx1로
+        Not16(in=x1, out=notx1);
+        // x1과 notx1 중, nx에 따라 x2를 결정
+        Mux16(a=x1, b=notx1, sel=nx, out=x2);
+
+        // zy, ny <- zx, nx와 같음
+        Mux16(a=y, sel=zy, out=y1);
+        Not16(in=y1, out=noty1);
+        Mux16(a=y1, b=noty1, sel=ny, out=y2);
+
+        // f가 무엇인지에 따라, and operation과 add operation의 결과 중 하나를 f의 결과가 된다.
+        Add16(a=x2, b=y2, out=addop);
+        And16(a=x2, b=y2, out=andop);
+        Mux16(a=andop, b=addop, sel=f, out=fret);
+
+        // no, fret을 반전시킨 값을 nfet으로
+        Not16(in=fret, out=nfret);
+        // fret과 nfret중 무엇을 선택할 지를 no에 맡겨 담는다.
+        // 가장 마지막 값을 제외하고 나머지를 반으로 쪼갠다.
+        Mux16(a=fret, b=nfret, sel=no, out=out, out[15]=lastbit, out[0..7]=leftout, out[8..15]=rightout);
+
+        // if (output == 0) zr = 1, otherwise zr = 0
+        Or8Way(in=leftout, out=zrleft); // 왼쪽에 위치한 비트들을 연속해서 Or 연산한 값을 zrleft로.
+        Or8Way(in=rightout, out=zrright); // 오른쪽에 위치한 비트들을 연속해서 Or연산
+        Or(a=zrleft, b=zrright, out=nzr); // 위에서 연산한 값들을 또 Or연산
+        Not(in=nzr, out=zr); // 반전
+
+        // if(output < 0)  ng = 1, otherwise ng = 0
+        And(a=lastbit, b=true, out=ng);
 }
