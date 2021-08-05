@@ -9,4 +9,46 @@
 // This program only needs to handle arguments that satisfy
 // R0 >= 0, R1 >= 0, and R0*R1 < 32768.
 
-// Put your code here.
+
+@R0
+D=M
+@X
+M=D	// X = R0
+
+@R1
+D=M
+@Y
+M=D	// Y = R1
+
+@0
+D=A
+
+@R2
+M=D	// R2 = 0
+
+(LOOP)
+    @X
+    D=M
+    @END
+    D;JLE // IF (X <= 0) goto END
+
+    @Y
+    D=M 
+
+    @R2
+    M=D+M // R2 = X + Y
+
+    @1
+    D=A 
+    
+    @X
+    M=M-D // X = X - 1
+
+    @LOOP
+    0;JMP
+(END)
+
+
+
+
+
