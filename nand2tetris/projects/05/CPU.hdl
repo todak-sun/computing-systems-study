@@ -39,5 +39,44 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    // A명령어일 때 [0|n|nnnnnnnnnnnnnn]
+    // C명령어일 때 [1|x|x|a|c|c|c|c|c|c|d|d|d|j|j|j]
+    //              [5|4|3|2|1|0|9|8|7|6|5|4|3|2|1|0]
+    // i - 명령어 종류
+    // a면 0, c면 1
+    // a비트 - 연산 담당
+    // c비트 - 연산 구체적인 내용
+    // d비트 dest
+    // j 비트 jump
+
+    // ARegister - 데이터 레지스터와 주소 레지스터 두 역할
+    // DRegister - 데이터 값을 저장하는 용도로 쓰는 레지스터
+
+    // 확인
+    Not(in=instruction[15], out=noti);
+    Or(a=noti, b=instruction[5], out=aFlag);
+
+    // A명령어라면, input의 주소를 로드하고 C명령어라면 ALU 결과를 로드
+    Mux16(a=instruction, b=ALUout, sel=instruction[15], out=address);
+    ARegister(in=address, load=aFlag, out=registerA, out[0..14]=addressM);
+
+    // a 비트를 보고 연산을 할 것인지, 메모리에 있는걸 꺼내올 것인지 결정
+    Mux16(a=registerA, b=inM, sel=instruction[12], out=ALUin);
+
+    ALU(x=registerD, 
+        y=ALUin, 
+        zx=instruction[11], 
+        nx=instruction[10], 
+        zy=instruction[9], 
+        ny=instruction[8], 
+        f=instruction[7], 
+        no=insturction[6], 
+        out=outM, 
+        zr=zr, 
+        ng=ng);
+    
+
+    
+
+
 }
