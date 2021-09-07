@@ -48,7 +48,8 @@ CHIP CPU {
 	Not(in=instruction[15], out=aType);
 	Not(in=aType, out=cType);
 	
-	// C instruction일 때 dest0 bit이 1이면 ALU의 result가, 0이면 instruction이 A register에 input된다.
+	// C instruction일 때 dest0 bit이 1이면 ALU의 result가 0이고, 
+    // A instruction이면 register에 input된다.
 	And(a=cType, b=instruction[5], out=ALUtoA);
 	Mux16(a=instruction, b=ALUout, sel=ALUtoA, out=ARegin);
 	
@@ -58,7 +59,10 @@ CHIP CPU {
 	ARegister(in=ARegin, load=loadA, out=ARegout);
 	
 	// a bit가 ALU의 Y input에 A register의 값이 들어갈 지 inM이 들어갈 지 결정
-	Mux16(a=ARegout, b=inM, sel=instruction[12], out=ALUYin);
+	Mux16(a=ARegout, 
+            b=inM, 
+            sel=instruction[12],  // a
+            out=ALUYin);
 	
 	// D register
 	// instruction이 C type이고 dest1이 1이면 (D register에 값을 저장해야하면) loadD가 1이 되어, D register에 ALUout이 저장된다.

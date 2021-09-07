@@ -1,0 +1,113 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/CPU.hdl
+
+/**
+ * The Hack CPU (Central Processing unit), consisting of an ALU,
+ * two registers named A and D, and a program counter named PC.
+ * The CPU is designed to fetch and execute instructions written in 
+ * the Hack machine language. In particular, functions as follows:
+ * Executes the inputted instruction according to the Hack machine 
+ * language specification. The D and A in the language specification
+ * refer to CPU-resident registers, while M refers to the external
+ * memory location addressed by A, i.e. to Memory[A]. The inM input 
+ * holds the value of this location. If the current instruction needs 
+ * to write a value to M, the value is placed in outM, the address 
+ * of the target location is placed in the addressM output, and the 
+ * writeM control bit is asserted. (When writeM==0, any value may 
+ * appear in outM). The outM and writeM outputs are combinational: 
+ * they are affected instantaneously by the execution of the current 
+ * instruction. The addressM and pc outputs are clocked: although they 
+ * are affected by the execution of the current instruction, they commit 
+ * to their new values only in the next time step. If reset==1 then the 
+ * CPU jumps to address 0 (i.e. pc is set to 0 in next time step) rather 
+ * than to the address resulting from executing the current instruction. 
+ */
+
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+        // A명령어일 때 [0nnnnnnnnnnnnnnn]
+        // C명령어일 때 [1xxaccccccdddjjj]
+        // i - 명령어 종류
+        And(a=instruction[15], b=true, out=i);
+        Not(in=i, out=outi);
+
+        // x비트 - 미사용
+        // a면 0, c면 1
+        // a비트 - 연산 담당
+        And(a=instruction[12], b=true, out=a);
+
+        // c비트 - 연산 구체적인 내용
+        And(a=instruction[11], b=true, out=c1);
+        And(a=instruction[10], b=true, out=c2);
+        And(a=instruction[9], b=true, out=c3);
+        And(a=instruction[8], b=true, out=c4);
+        And(a=instruction[7], b=true, out=c5);
+        And(a=instruction[6], b=true, out=c6);
+
+        // d비트 dest
+        And(a=instruction[5], b=true, out=d1);
+        And(a=instruction[4], b=true, out=d2);
+        And(a=instruction[3], b=true, out=d3);
+
+        And(a=i, b=d1, out=CwriteA);
+        And(a=i, b=d2, out=writeD);
+        //C 연산이고 d3가 1이면 메모리에 쓰는 연산을 한다.
+        And(a=i, b=d3, out=writeM);
+        
+        // j 비트 jump
+        And(a=instruction[2], b=true, out=j1);
+        And(a=instruction[1], b=true, out=j2);
+        And(a=instruction[0], b=true, out=j3);
+
+        //A 연산 이거나 C연산의 d2가 1인 경우에만 레지스터의 값을 변경한다.
+        Or(a=outi, b=CwriteA, out=writeA);
+
+        Mux16(a=instruction, b=outMP, sel=i, out=IOutM);
+        ARegister(in=IOutM, load=writeA, out[0..14]=addressM, out=A);
+        Mux16(a=A, b=inM, sel=a, out=AM);
+
+        DRegister(in=outMP, load=writeD, out=D);
+
+        ALU(x=D , y=AM , zx=c1, nx=c2, zy=c3, ny=c4, f=c5, no=c6, out=outMP, out=outM, zr=zr, ng=ng);
+
+        //j1            j2          j3          연상기호 효과
+        //(out ＜ 0)    (out ＝ 0)  (out ＞ 0)
+        //0             0           0           null    점프하지 않음
+        //0             0           1           JGT     out ＞ 0이면 점프
+        //0             1           0           JEQ     out ＝ 0이면 점프
+        //0             1           1           JGE     out ≥ 0이면 점프
+        //1             0           0           JLT     out ＜ 0이면 점프
+        //1             0           1           JNE     out ≠ 0이면 점프
+        //1             1           0           JLE     out ≤ 0이면 점프
+        //1             1           1           JMP     점프
+        Not(in=ng, out=nng);
+        Not(in=zr, out=nzr);
+        And(a=nng, b=nzr, out=pg);
+        And(a=j1, b=ng, out=JLT);
+        And(a=j2, b=zr, out=JEQ);
+        And(a=j3, b=pg, out=JGT);
+
+        And(a=JLT, b=JEQ, out=JLE);
+        And(a=JLT, b=JGT, out=JNE);
+        And(a=JEQ, b=JGT, out=JGE);
+
+        Or8Way(in[0]=JLT,in[1]=JEQ,in[2]=JGT,in[3]=JLE,in[4]=JNE,in[5]=JGE,in[6]=false,in[7]=false,out=PJMP);
+        And(a=PJMP, b=i, out=JMP);
+        Not(in=JMP, out=NJMP);
+
+        PC(in=A, load=JMP, inc=NJMP, reset=reset, out[0..14]=pc);
+}
