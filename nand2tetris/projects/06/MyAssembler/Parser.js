@@ -22,8 +22,6 @@ class Parser {
         return line.trim();
       })
       .filter((line) => line);
-
-    log(this.#commandLines);
   }
 
   /**
@@ -58,7 +56,7 @@ class Parser {
       this.#currentCommand.includes("(") &&
       this.#currentCommand.includes(")")
     ) {
-      return COMMAND_TYPE.C;
+      return COMMAND_TYPE.L;
     } else {
       throw new Error("존재하지 않는 commandType");
     }
@@ -69,26 +67,45 @@ class Parser {
    * @returns {String} 현재 명령의 기호 또는 10진수 반환
    */
   symbol() {
-    return this.#currentCommand.replace("@", "").replace("(", "").replace(")", "");
+    return this.#currentCommand
+      .replace("@", "")
+      .replace("(", "")
+      .replace(")", "");
   }
 
   /**
    * @description 현재 C-명령(8종류)의 dest 연상 기호를 반환.
    * commandType()이 C_COMMAND일 때만 호출되어야 한다.
    */
-  dest() {}
+  dest() {
+    if (this.#currentCommand.includes("=")) {
+      return this.#currentCommand.split("=")[0];
+    } else if (this.#currentCommand.includes(";")) {
+      return this.#currentCommand.split(";")[0];
+    }
+  }
 
   /**
    * @description 현재 C-명령(28개 종류) 에서 comp 연상 기호를 반환한다.
    * commandType()이 C_COMMAND일 때만 호출되어야 한다.
    */
-  comp() {}
+  comp() {
+    if (this.#currentCommand.includes("=")) {
+      return this.#currentCommand.split("=")[1];
+    } else if (this.#currentCommand.includes(';')) {
+      return '0'
+    }
+  }
 
   /**
    * @description 현재 C-명령(28개 종류) 에서 jump 연상기호를 반환한다.
    * commandType()이 C_COMMAND 일 때만 호출되어야 한다.
    */
-  jump() {}
+  jump() {
+    if (this.#currentCommand.includes(";")) {
+      return this.#currentCommand.split(";")[1];
+    }
+  }
 }
 
 module.exports = Parser;
