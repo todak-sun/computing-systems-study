@@ -15,7 +15,7 @@ class SymbolTable {
     };
     new Array(16).fill("R").forEach((r, i) => (this.#memo[`${r}${i}`] = i));
 
-    this.#address = 16
+    this.#address = 16gi
   }
 
   /**
