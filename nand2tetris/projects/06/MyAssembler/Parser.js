@@ -7,6 +7,7 @@ const fs = require("fs");
  * @description 어셈블리 명령들을 부분들(필드와 기호)로 분해한다.
  */
 class Parser {
+  #lines;
   #commandLines;
   #currentCommand;
 
@@ -22,6 +23,12 @@ class Parser {
         return line.trim();
       })
       .filter((line) => line);
+
+    this.#lines = this.#commandLines.map((command) => command);
+  }
+
+  refresh() {
+    this.#commandLines = this.#lines.map((command) => command);
   }
 
   /**
@@ -81,7 +88,7 @@ class Parser {
     if (this.#currentCommand.includes("=")) {
       return this.#currentCommand.split("=")[0];
     } else if (this.#currentCommand.includes(";")) {
-      return this.#currentCommand.split(";")[0];
+      return "0";
     }
   }
 
@@ -92,8 +99,8 @@ class Parser {
   comp() {
     if (this.#currentCommand.includes("=")) {
       return this.#currentCommand.split("=")[1];
-    } else if (this.#currentCommand.includes(';')) {
-      return '0'
+    } else if (this.#currentCommand.includes(";")) {
+      return this.#currentCommand.split(";")[0];
     }
   }
 

@@ -23,7 +23,21 @@ const code = new Code();
 const symbolTable = new SymbolTable();
 
 const binaries = [];
-let address = 16;
+
+// SymbolTable 초기화
+let lineNumber = 0;
+while (parser.hasMoreCommands()) {
+  parser.advance();
+  switch (parser.commandType()) {
+    case COMMAND_TYPE.L:
+      symbolTable.addEntry(parser.symbol(), lineNumber);
+    case COMMAND_TYPE.A:
+    case COMMAND_TYPE.C:
+      lineNumber++;
+  }
+}
+
+parser.refresh();
 
 while (parser.hasMoreCommands()) {
   parser.advance();
@@ -42,7 +56,7 @@ while (parser.hasMoreCommands()) {
       let line = "111";
       line += code.comp(parser.comp());
       line += code.dest(parser.dest());
-      line += code.jump(parser.comp());
+      line += code.jump(parser.jump());
       binary = line;
       break;
     case COMMAND_TYPE.L:
@@ -54,8 +68,6 @@ while (parser.hasMoreCommands()) {
   }
   binaries.push(binary);
 }
-
-log('binary', toBinary16Length(16))
 
 const { name, dir } = path.parse(filePath);
 fs.writeFileSync(`${dir}/${name}.hack`, binaries.join("\n"));

@@ -14,8 +14,7 @@ class SymbolTable {
       KBD: 24576,
     };
     new Array(16).fill("R").forEach((r, i) => (this.#memo[`${r}${i}`] = i));
-
-    this.#address = 16gi
+    this.#address = 16;
   }
 
   /**
@@ -26,6 +25,7 @@ class SymbolTable {
    */
   addEntry(symbol, address) {
     this.#memo[symbol] = address;
+    log("addEntry", symbol, this.#memo[symbol]);
   }
 
   /**
@@ -34,6 +34,7 @@ class SymbolTable {
    * @returns {boolean}
    */
   contains(symbol) {
+    // log(symbol, this.#memo[symbol], this.#memo);
     return this.#memo[symbol] !== undefined;
   }
 
@@ -43,7 +44,6 @@ class SymbolTable {
    * @returns {int}
    */
   GetAddress(symbol) {
-    log(this.#memo)
     if (this.contains(symbol)) {
       return this.#memo[symbol];
     } else {
