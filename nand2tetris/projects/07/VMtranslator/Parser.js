@@ -1,4 +1,5 @@
 const fs = require("fs");
+const log = console.log;
 const {
   COMMAND_TYPE,
   COMMAND_TYPE_KEYS,
@@ -18,6 +19,7 @@ class Parser {
   #lines;
   #iter;
   #next;
+  #currentLine;
   /**
    * 입력 파일/스트림을 열고 분석할 준비를 한다.
    * @param {string} file 입력 파일
@@ -47,7 +49,11 @@ class Parser {
    */
   hasMoreCommands() {
     this.#next = this.#iter.next();
-    return !this.#next.done;
+    const hasMoreCommand = !this.#next.done;
+    if(hasMoreCommand){
+      this.#currentLine = this.#next.value.split(' ');
+    }
+    return hasMoreCommand;
   }
 
   /**
@@ -61,10 +67,10 @@ class Parser {
    * @returns {string} COMMAND_TYPE
    */
   commandType() {
-    if (COMMAND_TYPE_KEYS.includes(this.arg1(1))) {
-      return COMMAND_TYPE[this.arg1()];
-    } else if (CALC_COMMAND_MAP_KEYS.includes(this.arg1())) {
-      return CALC_COMMAND_MAP[this.arg1()];
+    if (COMMAND_TYPE_KEYS.includes(this.#currentLine[0])) {
+      return COMMAND_TYPE[this.#currentLine[0]];
+    } else if (CALC_COMMAND_MAP_KEYS.includes(this.#currentLine[0])) {
+      return CALC_COMMAND_MAP[this.#currentLine[0]];
     }
     return undefined;
   }
@@ -74,14 +80,16 @@ class Parser {
    * @returns {string}
    */
   arg1() {
-    return this.#next.value.split(" ")[0];
+    return this.#currentLine[1]
   }
 
   /**
    * @description 현재 명령의 두 번째 인수를 반환한다. 현재 명령이 C_PUSH, C_POP, C_FUNCTION 또는 C_CALL일 때만 호출되어야 한다.
    * @returns {number}
    */
-  arg2() {}
+  arg2() {
+    return this.#currentLine[2]
+  }
 }
 
 module.exports = Parser;

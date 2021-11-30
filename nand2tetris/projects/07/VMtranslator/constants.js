@@ -10,15 +10,15 @@ const COMMAND_TYPE = {
 };
 
 const CALC_COMMAND_MAP = {
-  add: "D+M",
-  sub: "M-D",
-  neg: "-M",
-  eq: "EQ",
-  gt: "GT",
-  lt: "LT",
-  and: "&",
-  or: "|",
-  not: "!",
+  add: "add",
+  sub: "sub",
+  neg: "neg",
+  eq: "eq",
+  gt: "gt",
+  lt: "lt",
+  and: "and",
+  or: "or",
+  not: "not",
 };
 
 const SYMBOL_COMMAND_MAP = {
