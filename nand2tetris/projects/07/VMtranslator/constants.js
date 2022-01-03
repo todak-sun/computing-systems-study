@@ -1,45 +1,30 @@
-const COMMAND_TYPE = {
-  pop: "C_POP",
-  push: "C_PUSH",
-  label: "C_LABEL",
-  goto: "C_GOTO",
-  "if-goto": "C_IF",
-  function: "C_FUNCTION",
-  call: "C_CALL",
-  return: "C_RETURN",
+exports.COMMAND_DICT = {
+  add: 'C_ARITHMETIC',
+  sub: 'C_ARITHMETIC',
+  neg: 'C_ARITHMETIC',
+  eq: 'C_ARITHMETIC',
+  gt: 'C_ARITHMETIC',
+  lt: 'C_ARITHMETIC',
+  and: 'C_ARITHMETIC',
+  or: 'C_ARITHMETIC',
+  not: 'C_ARITHMETIC',
+  push: 'C_PUSH',
+  pop: 'C_POP',
+  label: 'C_LABEL',
+  goto: 'C_GOTO',
+  'if-goto': 'C_IF',
+  function: 'C_FUNCTION',
+  return: 'C_RETURN',
+  call: 'C_CALL',
 };
 
-const CALC_COMMAND_MAP = {
-  add: "add",
-  sub: "sub",
-  neg: "neg",
-  eq: "eq",
-  gt: "gt",
-  lt: "lt",
-  and: "and",
-  or: "or",
-  not: "not",
-};
-
-const SYMBOL_COMMAND_MAP = {
-  local: "LCL",
-  constant: "constant",
-  argument: "ARG",
-  this: "THIS",
-  that: "THAT",
-  temp: "R5",
-  pointer: "R3",
-};
-
-const COMMAND_TYPE_KEYS = Object.keys(COMMAND_TYPE);
-const CALC_COMMAND_MAP_KEYS = Object.keys(CALC_COMMAND_MAP);
-const SYMBOL_COMMAND_MAP_KEYS = Object.keys(SYMBOL_COMMAND_MAP);
-
-module.exports = {
-  COMMAND_TYPE,
-  COMMAND_TYPE_KEYS,
-  CALC_COMMAND_MAP,
-  CALC_COMMAND_MAP_KEYS,
-  SYMBOL_COMMAND_MAP,
-  SYMBOL_COMMAND_MAP_KEYS,
+exports.ADDRESS_DICT = {
+  local: 'LCL', // Base R1
+  argument: 'ARG', // Base R2
+  this: 'THIS', // Base R3
+  that: 'THAT', // Base R4
+  pointer: 3, // Edit R3, R4
+  temp: 5, // Edit R5-12
+  // R13-15 are free
+  static: 16, // Edit R16-255
 };

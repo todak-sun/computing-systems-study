@@ -5,7 +5,6 @@ const path = require('path');
 const CodeWriter = require('./codeWriter');
 const Parser = require('./parser');
 const FileInfo = require('./fileInfo');
-const constants = require('./constants');
 
 const resourcePath = process.argv.slice(2)[0];
 const fileNames = [];
@@ -34,36 +33,16 @@ if (outputFile.isDirectory()) {
 
 const cw = new CodeWriter(outputFile);
 
-fileNames.forEach((fileName) => {
-  cw.setFileName(path.parse(fileName).name);
-
-  const parser = new Parser(fileName);
-  while (parser.hasMoreCommands()) {
-    const commandType = parser.commandType();
-    log('command type ', commandType)
-    if (constants.CALC_COMMAND_MAP_KEYS.includes(commandType)) {
-      cw.writerArithmetic(commandType);
-    } else {
-      switch (commandType) {
-        case constants.COMMAND_TYPE.push || constants.COMMAND_TYPE.pop:
-          cw.writePushPop(commandType, parser.arg1(), +parser.arg2());
-          break;
-        case constants.COMMAND_TYPE['label']:
-          break;
-        case constants.COMMAND_TYPE['goto']:
-          break;
-        case constants.COMMAND_TYPE['if-goto']:
-          break;
-        case constants.COMMAND_TYPE['function']:
-          break;
-        case constants.COMMAND_TYPE['call']:
-          break;
-        case constants.COMMAND_TYPE['return']:
-          break;
-        default:
-          break;
-      }
-    }
+const parser = new Parser(outputFile.getFullPath());
+while (parser.hasMoreCommands()) {
+  parser.advance();
+  cw.write(`// ${parser.getCurrentInstruction().join(' ')}`);
+  if (parser.commandType() === 'C_PUSH') {
+    cw.writePushPop('C_PUSH', parser.arg1(), parser.arg2());
+  } else if (parser.commandType() === 'C_POP') {
+    cw.writePushPop('C_POP', parser.arg1(), parser.arg2());
+  } else if (parser.commandType() === 'C_ARITHMETIC') {
+    cw.writerArithmetic(parser.arg1());
   }
-  cw.close();
-});
+}
+cw.close();

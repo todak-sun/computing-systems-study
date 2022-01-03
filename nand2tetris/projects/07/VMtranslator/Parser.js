@@ -1,13 +1,6 @@
-const fs = require("fs");
+const fs = require('fs');
+const { COMMAND_DICT } = require('./constants');
 const log = console.log;
-const {
-  COMMAND_TYPE,
-  COMMAND_TYPE_KEYS,
-  CALC_COMMAND_MAP,
-  CALC_COMMAND_MAP_KEYS,
-  SYMBOL_COMMAND_MAP,
-  SYMBOL_COMMAND_MAP_KEYS,
-} = require("./constants");
 
 function* gen(iter) {
   for (const item of iter) {
@@ -16,20 +9,21 @@ function* gen(iter) {
 }
 
 class Parser {
-  #lines;
+  #lines; /**@member {string[]} */
   #iter;
   #next;
   #currentLine;
+
   /**
    * 입력 파일/스트림을 열고 분석할 준비를 한다.
    * @param {string} file 입력 파일
    */
   constructor(file) {
-    const content = fs.readFileSync(file, { encoding: "utf-8" }).toString();
+    const content = fs.readFileSync(file, { encoding: 'utf-8' }).toString();
     this.#lines = content
-      .split("\r\n")
+      .split('\r\n')
       .map((line) => {
-        const commentIndex = line.indexOf("//");
+        const commentIndex = line.indexOf('//');
         if (commentIndex != -1) {
           line = line.substring(0, commentIndex);
         }
@@ -50,9 +44,6 @@ class Parser {
   hasMoreCommands() {
     this.#next = this.#iter.next();
     const hasMoreCommand = !this.#next.done;
-    if(hasMoreCommand){
-      this.#currentLine = this.#next.value.split(' ');
-    }
     return hasMoreCommand;
   }
 
@@ -60,19 +51,20 @@ class Parser {
    * @description 입력에서 다음 명령을 읽고 현재 명령으로 만든다. hasMoreCommands()가 참일 때만 호출되어야 한다. 초기에는 혀재 명령은 비어있다.
    * @returns {void}
    */
-  advance() {}
+  advance() {
+    this.#currentLine = this.#next.value.split(' ');
+  }
+
+  getCurrentInstruction() {
+    return this.#currentLine;
+  }
 
   /**
    * @description 현재 VM 명령의 타입을 반환한다. 모든 산술 명령(arithmetic command)에 대해 C_ARITHMETIC이 반환된다.
    * @returns {string} COMMAND_TYPE
    */
   commandType() {
-    if (COMMAND_TYPE_KEYS.includes(this.#currentLine[0])) {
-      return COMMAND_TYPE[this.#currentLine[0]];
-    } else if (CALC_COMMAND_MAP_KEYS.includes(this.#currentLine[0])) {
-      return CALC_COMMAND_MAP[this.#currentLine[0]];
-    }
-    return undefined;
+    return COMMAND_DICT[this.#currentLine[0]];
   }
 
   /**
@@ -80,7 +72,7 @@ class Parser {
    * @returns {string}
    */
   arg1() {
-    return this.#currentLine[1]
+    return this.commandType() === 'C_ARITHMETIC' ? this.#currentLine[0] : this.#currentLine[1];
   }
 
   /**
@@ -88,7 +80,7 @@ class Parser {
    * @returns {number}
    */
   arg2() {
-    return this.#currentLine[2]
+    return this.#currentLine[2];
   }
 }
 

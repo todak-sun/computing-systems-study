@@ -1,11 +1,13 @@
 const log = console.log;
-const constants = require('./constants');
+const { ADDRESS_DICT } = require('./constants');
 const fs = require('fs');
 const path = require('path');
 
 class CodeWriter {
+  /**@type {number} */
+  #boolCount = 0;
   /** @type {string[]} */
-  #translatedRows;
+  #translatedRows = [];
   /** @type {import("./fileInfo")} */
   #outputFile;
   /** @type {string} */
@@ -19,12 +21,6 @@ class CodeWriter {
    */
   constructor(outputFile) {
     this.#outputFile = outputFile;
-    this.#currentLine = 0;
-    this.#translatedRows = ['//init'];
-    this.#writeLine('@256');
-    this.#writeLine('D=A');
-    this.#writeLine('@SP');
-    this.#writeLine('M=D');
   }
 
   /**
@@ -35,44 +31,60 @@ class CodeWriter {
     this.#filename = filename;
   }
 
+  write(line) {
+    this.#writeLine(line);
+  }
+
   /**
    *
    * @param {string} command
    * @description 주어진 산술 명령을 번역한 어셈블리 코드를 기록한다.
    */
   writerArithmetic(command) {
-    this.#writeLine(`// ${command}`);
-
-    if (['add', 'sub', 'and', 'or'].includes(command)) {
-      this.#writeLine('@SP');
-      this.#writeLine('AM=M-1');
-      this.#writeLine('D=M');
-      this.#writeLine('A=A-1');
-
-      switch (command) {
-        case 'add':
-          this.#writeLine('M=D+M');
-          break;
-        case 'sub':
-          this.#writeLine('M=M-D');
-          break;
-        case 'and':
-          this.#writeLine('M=D&M');
-          break;
-        case 'or':
-          this.#writeLine('M=D|M');
-          break;
-        default:
-          break;
-      }
-    } else if (['eq', 'lt', 'gt']) {
-      this.#writeLine('@SP');
-      this.#writeLine('AM=M-1');
-      this.#writeLine('D=M');
-      this.#writeLine('A=A-1');
-      this.#writeLine('D=D-M');
-      this.#writeLine(`@`);
+    if (!['neg', 'not'].includes(command)) {
+      this.#popStackToD();
     }
+    this.#decrementSP();
+    this.#setAtoStack();
+
+    if (command === 'add') {
+      this.#writeLine('M=M+D');
+    } else if (command === 'sub') {
+      this.#writeLine('M=M-D');
+    } else if (command === 'and') {
+      this.#writeLine('M=M&D');
+    } else if (command === 'or') {
+      this.#writeLine('M=M|D');
+    } else if (command === 'neg') {
+      this.#writeLine('M=-M');
+    } else if (command === 'not') {
+      this.#writeLine('M=!M');
+    } else if (['eq', 'gt', 'lt'].includes(command)) {
+      this.#writeLine('D=M-D');
+      this.#writeLine(`@BOOL${this.#boolCount}`);
+      if (command === 'eq') {
+        this.#writeLine('D;JEQ');
+      } else if (command === 'gt') {
+        this.#writeLine('D;JGT');
+      } else if (command === 'lt') {
+        this.#writeLine('D;JLT');
+      }
+
+      this.#setAtoStack();
+      this.#writeLine('M=0');
+      this.#writeLine(`@ENDBOOL${this.#boolCount}`);
+      this.#writeLine(`0;JMP`);
+
+      this.#writeLine(`(BOOL${this.#boolCount})`);
+      this.#setAtoStack();
+      this.#writeLine(`M=-1`);
+
+      this.#writeLine(`(ENDBOOL${this.#boolCount})`);
+      this.#boolCount += 1;
+    } else {
+      throw new Error(`command : ${command}`);
+    }
+    this.#incrementSP();
   }
 
   /**
@@ -83,78 +95,24 @@ class CodeWriter {
    * @description 주어진 command를 번역한 어셈블리 코드를 기록한다.
    */
   writePushPop(command, segment, index) {
-    this.#writeLine(`//COMMENT : ${[command, segment, index].join(' ')}`);
-    if (command === constants.COMMAND_TYPE.push) {
-      if (segment === 'pointer') {
-        if (index == 0) {
-          this.#writeLine(`@${constants.SYMBOL_COMMAND_MAP.this}`);
-        } else if (index === 1) {
-          this.#writeLine(`@${constants.SYMBOL_COMMAND_MAP.that}`);
-        }
-        this.#writeLine('D=M');
-      } else if (segment === 'static') {
-        this.#writeLine(`@${this.#filename}.${index}`);
-        this.#writeLine('D=M');
-      } else if (index == 0 && segment !== constants.SYMBOL_COMMAND_MAP.constant) {
-        this.#writeLine(`@${constants.SYMBOL_COMMAND_MAP[segment]}`);
-        this.#writeLine('A=M');
-        this.#writeLine('D=M');
-      } else if (index > 0 || segment === constants.SYMBOL_COMMAND_MAP.constant) {
-        this.#writeLine(`@${index}`);
+    this.#resolveAddress(segment, index);
+    if (command === 'C_PUSH') {
+      if (segment === 'constant') {
         this.#writeLine('D=A');
-      }
-
-      if (index > 0 && segment !== constants.SYMBOL_COMMAND_MAP.constant && segment !== 'pointer' && segment !== 'static') {
-        this.#writeLine(`@${constants.SYMBOL_COMMAND_MAP[segment]}`);
-        if (segment === 'temp') {
-          this.#writeLine('A=D+A');
-        } else {
-          this.#writeLine('A=D+M');
-        }
+      } else {
         this.#writeLine('D=M');
       }
-
-      this.#writeLine('@SP');
+      this.#pushDtoStack()
+    } else if (command === 'C_POP') {
+      this.#writeLine('D=A');
+      this.#writeLine('@R13');
+      this.#writeLine('M=D');
+      this.#popStackToD();
+      this.#writeLine('@R13');
       this.#writeLine('A=M');
       this.#writeLine('M=D');
-      this.#writeLine('@SP');
-      this.#writeLine('M=M+1');
-    } else if (command == constants.COMMAND_TYPE.pop) {
-      if (index === 0 || segment === 'pointer' || segment === 'static') {
-        this.#writeLine('@SP');
-        this.#writeLine('AM=M-1');
-        this.#writeLine('D=M');
-        if (segment === 'pointer' && index === 0) {
-          this.#writeLine(`@${constants.SYMBOL_COMMAND_MAP.this}`);
-        } else if (segment === 'pointer' && index === 1) {
-          this.#writeLine(`@${constants.SYMBOL_COMMAND_MAP.that}`);
-        } else if (segment === 'static') {
-          this.#writeLine(`@${this.#filename}.${index}`);
-        } else {
-          this.#writeLine(`@${constants.SYMBOL_COMMAND_MAP[segment]}`);
-        }
-      } else if (index > 0) {
-        this.#writeLine(`@${index}`);
-        this.#writeLine('D=A');
-        this.#writeLine(`@${constants.SYMBOL_COMMAND_MAP[segment]}`);
-
-        if (segment === 'temp') {
-          this.#writeLine('D=D+A');
-        } else {
-          this.#writeLine('D=D+M');
-        }
-        this.#writeLine('@R13');
-        this.#writeLine('M=D');
-        this.#writeLine('@SP');
-        this.#writeLine('AM=M-1');
-        this.#writeLine('D=M');
-        this.#writeLine('@R13');
-      }
-
-      if (segment !== 'pointer' && segment !== 'static' && segment !== 'temp') {
-        this.#writeLine('A=M');
-      }
-      this.#writeLine('M=D');
+    } else {
+      throw new Error(`command : ${command}, segment : ${segment}, index: ${index}`);
     }
   }
 
@@ -162,13 +120,55 @@ class CodeWriter {
    * @description 출력 파일을 닫는다.
    */
   close() {
-    const data = this.#translatedRows.join('\n');
-    fs.writeFileSync(path.join(this.#outputFile.getDir(), `${this.#filename}.asm`), data, { encoding: 'utf-8' });
+    console.log(this.#translatedRows.join('\n'));
+  }
 
-    log(data);
-    // fs.writeFileSync(this.#outputPath, this.#translatedRows.join("\n"), {
-    //   encoding: "utf-8",
-    // });
+  #resolveAddress(segment, index) {
+    const address = ADDRESS_DICT[segment];
+    if (segment === 'constant') {
+      this.#writeLine(`@${index}`);
+    } else if (segment === 'static') {
+      this.#writeLine(`@${this.#filename}.${index}`);
+    } else if (['pointer', 'temp'].includes(segment)) {
+      this.#writeLine(`@R${address + index}`);
+    } else if (['local', 'argument', 'this', 'that'].includes(segment)) {
+      this.#writeLine(`@${address}`);
+      this.#writeLine(`D=M`);
+      this.#writeLine(`@${index}`);
+      this.#writeLine(`A=D+A`);
+    } else {
+      throw new Error(`segment : ${segment}, index : ${index}`);
+    }
+  }
+
+  #setAtoStack() {
+    this.#writeLine('@SP');
+    this.#writeLine('A=M');
+  }
+
+  #decrementSP() {
+    this.#writeLine('@SP');
+    this.#writeLine('M=M-1');
+  }
+
+  #incrementSP() {
+    this.#writeLine('@SP');
+    this.#writeLine('M=M+1');
+  }
+
+  #popStackToD() {
+    this.#writeLine('@SP');
+    this.#writeLine('M=M-1');
+    this.#writeLine('A=M');
+    this.#writeLine('D=M');
+  }
+
+  #pushDtoStack() {
+    this.#writeLine('@SP');
+    this.#writeLine('A=M');
+    this.#writeLine('M=D');
+    this.#writeLine('@SP');
+    this.#writeLine('M=M+1');
   }
 
   #writeLine(line) {

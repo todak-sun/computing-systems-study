@@ -1,9 +1,4 @@
-//init
-@256
-D=A
-@SP
-M=D
-//COMMENT : C_PUSH constant 7
+// push constant 7
 @7
 D=A
 @SP
@@ -11,7 +6,7 @@ A=M
 M=D
 @SP
 M=M+1
-//COMMENT : C_PUSH constant 8
+// push constant 8
 @8
 D=A
 @SP
@@ -21,7 +16,13 @@ M=D
 M=M+1
 // add
 @SP
-AM=M-1
+M=M-1
+A=M
 D=M
-A=A-1
-M=D+M
+@SP
+M=M-1
+@SP
+A=M
+M=M+D
+@SP
+M=M+1
