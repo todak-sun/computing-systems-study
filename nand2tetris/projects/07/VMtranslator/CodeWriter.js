@@ -102,7 +102,7 @@ class CodeWriter {
       } else {
         this.#writeLine('D=M');
       }
-      this.#pushDtoStack()
+      this.#pushDtoStack();
     } else if (command === 'C_POP') {
       this.#writeLine('D=A');
       this.#writeLine('@R13');
@@ -120,7 +120,7 @@ class CodeWriter {
    * @description 출력 파일을 닫는다.
    */
   close() {
-    console.log(this.#translatedRows.join('\n'));
+    fs.writeFileSync(`${this.#outputFile.getFullPathExcludeExt()}.asm`, this.#translatedRows.join('\n'), { encoding: 'utf-8' });
   }
 
   #resolveAddress(segment, index) {
