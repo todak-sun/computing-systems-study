@@ -23,7 +23,10 @@ if (outputFile.isDirectory()) {
   if (!names.filter((name) => name.endsWith('.vm'))[0]) {
     throw new Error('vm 파일이 한 개도 존재하지 않습니다.');
   }
-  names.map((name) => path.join(outputFile.getDir(), name)).forEach((name) => fileNames.push(name));
+  names
+    .filter((name) => name.endsWith('.vm'))
+    .map((name) => path.join(outputFile.getDir(), name))
+    .forEach((name) => fileNames.push(name));
 } else if (outputFile.isFile()) {
   if (!outputFile.getFullPath().endsWith('.vm')) {
     throw new Error('vm 파일이 아닙니다.');
@@ -31,18 +34,20 @@ if (outputFile.isDirectory()) {
   fileNames.push(outputFile.getFullPath());
 }
 
-const cw = new CodeWriter(outputFile);
-
-const parser = new Parser(outputFile.getFullPath());
-while (parser.hasMoreCommands()) {
-  parser.advance();
-  cw.write(`// ${parser.getCurrentInstruction().join(' ')}`);
-  if (parser.commandType() === 'C_PUSH') {
-    cw.writePushPop('C_PUSH', parser.arg1(), parser.arg2());
-  } else if (parser.commandType() === 'C_POP') {
-    cw.writePushPop('C_POP', parser.arg1(), parser.arg2());
-  } else if (parser.commandType() === 'C_ARITHMETIC') {
-    cw.writerArithmetic(parser.arg1());
+fileNames.forEach((file) => {
+  const fileInfo = new FileInfo(fs.statSync(file), path.parse(file));
+  const cw = new CodeWriter(fileInfo);
+  const parser = new Parser(fileInfo.getFullPath());
+  while (parser.hasMoreCommands()) {
+    parser.advance();
+    cw.write(`// ${parser.getCurrentInstruction().join(' ')}`);
+    if (parser.commandType() === 'C_PUSH') {
+      cw.writePushPop('C_PUSH', parser.arg1(), parser.arg2());
+    } else if (parser.commandType() === 'C_POP') {
+      cw.writePushPop('C_POP', parser.arg1(), parser.arg2());
+    } else if (parser.commandType() === 'C_ARITHMETIC') {
+      cw.writerArithmetic(parser.arg1());
+    }
   }
-}
-cw.close();
+  cw.close();
+});

@@ -130,7 +130,7 @@ class CodeWriter {
     } else if (segment === 'static') {
       this.#writeLine(`@${this.#filename}.${index}`);
     } else if (['pointer', 'temp'].includes(segment)) {
-      this.#writeLine(`@R${address + index}`);
+      this.#writeLine(`@R${address + parseInt(index)}`);
     } else if (['local', 'argument', 'this', 'that'].includes(segment)) {
       this.#writeLine(`@${address}`);
       this.#writeLine(`D=M`);

@@ -7,7 +7,7 @@ M=D
 @SP
 M=M+1
 // pop pointer 0
-@R30
+@R3
 D=A
 @R13
 M=D
@@ -27,7 +27,7 @@ M=D
 @SP
 M=M+1
 // pop pointer 1
-@R31
+@R4
 D=A
 @R13
 M=D
@@ -85,7 +85,7 @@ D=M
 A=M
 M=D
 // push pointer 0
-@R30
+@R3
 D=M
 @SP
 A=M
@@ -93,7 +93,7 @@ M=D
 @SP
 M=M+1
 // push pointer 1
-@R31
+@R4
 D=M
 @SP
 A=M
