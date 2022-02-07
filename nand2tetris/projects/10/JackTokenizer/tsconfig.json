@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "removeComments": false,
+    "baseUrl": "./",
+    "rootDirs": ["src"],
+    "sourceMap": true,
+    "declaration": true,
+    "target": "ES2017",
+    "allowJs": true,
+    "outDir": "./dist",
+    "noImplicitAny": true,
+    "alwaysStrict": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["dist"]
+}
