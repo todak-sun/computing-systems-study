@@ -1,3 +1,9 @@
+export const KeywordTypes = ['class', 'function', 'void', 'var', 'int', 'let', 'while'] as const;
+export type Keyword = typeof KeywordTypes[number];
+
+export const SymbolTypes = ['{', '}', '(', ')', ';', '.', '=', '&lt;', '[', ']', '+', '/'] as const;
+export type SymbolType = typeof SymbolTypes[number];
+
 const TOKEN_TYPE = [`KEYWORD`, `SYMBOL`, `IDENTIFIER`, `INT_CONST`, `STRING_CONST`] as const;
 export type TokenType = typeof TOKEN_TYPE[number];
 

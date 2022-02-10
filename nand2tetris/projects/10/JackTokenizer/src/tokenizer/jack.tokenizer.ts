@@ -1,8 +1,21 @@
-import { KeywordType, TokenType } from './constants';
+import { KeywordType, TokenType } from './token.constants';
 
 export class JackTokenizer {
-  // TODO: 생성자에 입력 파일 또는 스트림 받을 것.
-  constructor() {}
+  private readonly fileLines: string[];
+
+  constructor(jackFileSourceCode: string) {
+    this.fileLines = this.preprocessSourceCode(jackFileSourceCode);
+    console.log(this.fileLines);
+  }
+
+  private preprocessSourceCode(sourceCode: string): string[] {
+    return sourceCode
+      .split('\r\n')
+      .map((line) => line.replace(/\t/gi, ''))
+      .filter((line) => !line.startsWith('//')) // //로 시작하는 주석 삭제
+      .filter((line) => !(line.startsWith('/*') && line.endsWith('*/'))) // /** */ 형태의 주석 삭제
+      .filter((line) => line); // 빈 줄 삭제;
+  }
 
   /**
    *

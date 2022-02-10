@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "prebuild": "rimraf dist",
     "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.16",
+    "rimraf": "^3.0.2"
   },
   "keywords": [],
   "author": "",
