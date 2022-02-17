@@ -1,4 +1,5 @@
 export class XML {
+  private parent: XML;
   private readonly children: XML[];
   private textContent: string;
 
@@ -8,6 +9,7 @@ export class XML {
 
   appendChild(xml: XML): XML {
     this.children.push(xml);
+    xml.parent = this;
     return this;
   }
 
@@ -20,13 +22,30 @@ export class XML {
     return !!this.children.length;
   }
 
-  toXmlDocument(): string {
-    let inner: string;
-    if (this.hasChildren()) {
-      inner = `\n${this.children.map((child) => `\t${child.toXmlDocument()}`).join('\n')}\n`;
-    } else {
-      inner = ` ${this.textContent} `;
+  private getParentCount(): number {
+    let count: number = 0;
+    let xml: XML = this;
+    while (xml.hasParent()) {
+      ++count;
+      xml = xml.parent;
     }
-    return `<${this.type}>${inner}</${this.type}>`;
+    return count;
+  }
+
+  private hasParent(): boolean {
+    return !!this.parent;
+  }
+
+  toXmlDocument(): string {
+    const tabCounts = this.getParentCount();
+    const startTab = tabCounts ? new Array(tabCounts).fill('\t').join('') : '';
+    const endTap = tabCounts && this.hasChildren() ? new Array(tabCounts).fill('\t').join('') : '';
+    const indent = this.hasParent() ? '\n' : '';
+    const newLine = this.hasChildren() ? '\n' : '';
+    const childrenText: string = this.hasChildren()
+      ? `${this.children.map((child) => `${child.toXmlDocument()}`).join('')}`
+      : `${this.textContent}`;
+
+    return `${indent}${startTab}<${this.type}>${childrenText}${newLine}${endTap}</${this.type}>`;
   }
 }

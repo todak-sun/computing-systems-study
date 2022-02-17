@@ -15,23 +15,14 @@ async function appStart(args: string[]) {
 
   try {
     files = await fileLoader(targetPath);
+    for (const file of files) {
+      const sourceCode = await readFile(file);
+      new JackTokenizer(sourceCode);
+    }
   } catch (e) {
     console.error(e);
     process.exit(1);
   }
-  const root = new XML('tokens');
-
-  root
-    .appendChild(new XML(`keyword`).setTextContent(`if`))
-    .appendChild(new XML(`symbol`).setTextContent(`(`).appendChild(new XML(`symbol`).setTextContent(`=`)))
-    .appendChild(new XML(`identifier`).setTextContent(`x`));
-
-  console.log(root.toXmlDocument());
-
-  //   for (const file of files) {
-  //     const sourceCode: string = await readFile(file);
-  //     const tokenizer = new JackTokenizer(sourceCode);
-  //   }
 }
 
 appStart(process.argv.slice(2));

@@ -1,11 +1,11 @@
 import { KeywordType, TokenType } from './token.constants';
 
 export class JackTokenizer {
-  private readonly fileLines: string[];
+  private readonly tokens: string[];
 
   constructor(jackFileSourceCode: string) {
-    this.fileLines = this.preprocessSourceCode(jackFileSourceCode);
-    console.log(this.fileLines);
+    this.tokens = this.preprocessSourceCode(jackFileSourceCode);
+    console.log(this.tokens);
   }
 
   private preprocessSourceCode(sourceCode: string): string[] {
@@ -14,7 +14,9 @@ export class JackTokenizer {
       .map((line) => line.replace(/\t/gi, ''))
       .filter((line) => !line.startsWith('//')) // //로 시작하는 주석 삭제
       .filter((line) => !(line.startsWith('/*') && line.endsWith('*/'))) // /** */ 형태의 주석 삭제
-      .filter((line) => line); // 빈 줄 삭제;
+      .filter((line) => line) // 빈 줄 삭제;
+      .map((line) => line.trim().split(/ |,/gi))
+      .flat();
   }
 
   /**
