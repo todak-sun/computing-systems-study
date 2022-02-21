@@ -17,7 +17,11 @@ async function appStart(args: string[]) {
     files = await fileLoader(targetPath);
     for (const file of files) {
       const sourceCode = await readFile(file);
-      new JackTokenizer(sourceCode);
+      const tokenizer = new JackTokenizer(sourceCode);
+      while(tokenizer.hasMoreTokens()){
+        tokenizer.advance();
+        tokenizer.tokenType();
+      }
     }
   } catch (e) {
     console.error(e);
