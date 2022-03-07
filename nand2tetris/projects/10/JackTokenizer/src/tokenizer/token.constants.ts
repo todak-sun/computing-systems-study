@@ -1,6 +1,28 @@
-export const KeywordTypes = ['class', 'function', 'void', 'var', 'int', 'let', 'while'];
+export const KeywordTypes = [
+  'class',
+  'constructor',
+  'function',
+  'method',
+  'field',
+  'static',
+  'var',
+  'int',
+  'char',
+  'boolean',
+  'void',
+  'true',
+  'false',
+  'null',
+  'this',
+  'let',
+  'do',
+  'if',
+  'else',
+  'while',
+  'return',
+];
+export const commentPattern = '/(^//.*)|(^/\\*.*)|^\\*.*/';
 export const SymbolTypes = ['{', '}', '(', ')', ';', '.', '=', '&lt;', '[', ']', '+', '/'];
-
 
 const TOKEN_TYPE = [`KEYWORD`, `SYMBOL`, `IDENTIFIER`, `INT_CONST`, `STRING_CONST`] as const;
 export type TokenType = typeof TOKEN_TYPE[number];

@@ -16,8 +16,37 @@ export class JackTokenizer {
       .filter((line) => !line.startsWith('//')) // //로 시작하는 주석 삭제
       .filter((line) => !(line.startsWith('/*') && line.endsWith('*/'))) // /** */ 형태의 주석 삭제
       .filter((line) => line) // 빈 줄 삭제;
-      .filter((line) => line)
-      .map((line) => line.replace(/\(|\)|\;|\./gi, (s) => ` ${s} `))
+      .map((line) => {
+        // 문자열이 서로 분리되지 않도록, _로 묶어주기.
+        const result = [];
+        let isString: boolean = false;
+        for (const char of line.split('')) {
+          let target = char;
+          if (target === '"') {
+            isString = !isString;
+          }
+          if (target === ' ') {
+            if (isString) {
+              target = '_';
+            }
+          }
+          result.push(target);
+        }
+        return result.join('');
+      })
+      .map((line) => {
+        // Symbol들 사이에 공간을 두어 쪼개기 좋게 관리.
+        const result = [];
+        for (const char of line.split('')) {
+          if (SymbolTypes.includes(char)) {
+            result.push(` ${char} `);
+          } else {
+            result.push(char);
+          }
+        }
+        return result.join('');
+      })
+      .map((line) => line.split(/ /gi).filter((v) => v))
       .flat();
   }
 
