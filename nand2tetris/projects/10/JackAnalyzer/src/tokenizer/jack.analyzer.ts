@@ -1,28 +1,19 @@
-import { JackTokenizer } from './tokenizer/jack.tokenizer';
-import { KeywordType } from './tokenizer/token.constants';
-import { XML } from './tokenizer/xml';
-import { argumentParse, fileLoader, readFile } from './util';
-import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as fs from 'fs/promises';
+import { readFile } from '../util';
+import { JackTokenizer } from './jack.tokenizer';
+import { KeywordType } from './token.constants';
+import { XML } from './xml';
 
-async function appStart(args: string[]) {
-  const targetPath = args[args.length - 1];
-  const programArgs = argumentParse(args);
+export class JackAnalyzer {
+  constructor(private readonly files: string[]) {}
 
-  if (!targetPath) {
-    console.error(`ERROR! target path required`);
-    process.exit(1);
-  }
-
-  let files: string[] = [];
-
-  try {
-    files = await fileLoader(targetPath);
-
-    for (const file of files) {
+  async start() {
+    for (const file of this.files) {
       const sourceCode = await readFile(file);
       const tokenizer = new JackTokenizer(sourceCode);
       const tokens = new XML('tokens');
+
       while (tokenizer.hasMoreTokens()) {
         // 다음 토큰 가져오기
         tokenizer.advance();
@@ -44,15 +35,11 @@ async function appStart(args: string[]) {
           const stringValue: string = tokenizer.stringVal();
           tokens.appendChild(new XML(`stringConstant`).setTextContent(stringValue));
         }
+
+        const { dir, name } = path.parse(file);
+        const outPath = path.join(dir, `${name}T.test.xml`);
+        await fs.writeFile(outPath, tokens.toXmlDocument(), { encoding: 'utf-8' });
       }
-      const { dir, name } = path.parse(file);
-      const outPath = path.join(dir, `${name}T.test.xml`);
-      await fs.writeFile(outPath, tokens.toXmlDocument(), { encoding: 'utf-8' });
     }
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
   }
 }
-
-appStart(process.argv.slice(2));
