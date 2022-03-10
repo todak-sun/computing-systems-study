@@ -1,4 +1,4 @@
-import { KeywordType, KeywordTypes, SymbolTypes, TokenType } from './token.constants';
+import { KeywordType, KeywordTypeMap, KeywordTypes, SymbolTypes, TokenType } from './token.constants';
 
 export class JackTokenizer {
   private readonly tokens: string[];
@@ -6,7 +6,6 @@ export class JackTokenizer {
 
   constructor(jackFileSourceCode: string) {
     this.tokens = this.preprocessSourceCode(jackFileSourceCode);
-    console.log(this.tokens);
   }
 
   private preprocessSourceCode(sourceCode: string): string[] {
@@ -72,17 +71,20 @@ export class JackTokenizer {
    * @description 현재 토큰의 종류를 반환한다.
    */
   tokenType(): TokenType {
+    let tokenType: TokenType = null;
     if (KeywordTypes.includes(this.currentToken)) {
-      return `KEYWORD`;
+      tokenType = `KEYWORD`;
     } else if (SymbolTypes.includes(this.currentToken)) {
-      return `SYMBOL`;
+      tokenType = `SYMBOL`;
     } else if (!isNaN(parseInt(this.currentToken))) {
-      return `INT_CONST`;
-    } else if (this.currentToken.startsWith('') && this.currentToken.endsWith('')) {
-      return `STRING_CONST`;
+      tokenType = `INT_CONST`;
+    } else if (this.currentToken.startsWith('"') && this.currentToken.endsWith('"')) {
+      tokenType = `STRING_CONST`;
     } else {
-      return `IDENTIFIER`;
+      tokenType = `IDENTIFIER`;
     }
+
+    return tokenType;
   }
 
   /**
@@ -90,34 +92,36 @@ export class JackTokenizer {
    *               tokenType()이 KEYWORD일 때만 호출되어야 한다.
    */
   keyword(): KeywordType {
-    return null;
+    const keywordType = KeywordTypeMap[this.currentToken];
+
+    return keywordType;
   }
 
   /**
    * @description 현재 토큰의 문자를 반환한다. tokenType()이 SYMBOL일 때만 호출되어야 한다.
    */
   symbol(): string {
-    return null;
+    return this.currentToken;
   }
 
   /**
    * @description 현재 토큰의 식별자를 반환한다. tokenType()이 IDENTIFIER일 때만 호출되어야 한다.
    */
   identifier(): string {
-    return null;
+    return this.currentToken;
   }
 
   /**
    * @description 현재 토큰의 정수 값을 반환한다. tokenType()이 INT_CONST 일 때만 호출되어야 한다.
    */
   intVal(): number {
-    return null;
+    return parseInt(this.currentToken);
   }
 
   /**
    * @description 현재 토큰의 문자열 값을, 따옴표 없는 상태로 반환한다. tokenType() 이 STRING_CONST일 때만 호출되어야 한다.
    */
   stringVal(): string {
-    return null;
+    return this.currentToken.replace(/\"/gi, '').replace(/_/gi, ' ');
   }
 }

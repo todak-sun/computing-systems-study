@@ -14,7 +14,20 @@ export class XML {
   }
 
   setTextContent(textContent: string): XML {
-    this.textContent = textContent;
+    let value;
+    if (textContent === '<') {
+      value = '&lt;';
+    } else if (textContent === '>') {
+      value = '&gt;';
+    } else if (textContent === '"') {
+      value = '&quot;';
+    } else if (textContent === '&') {
+      value = '&amp;';
+    } else {
+      value = textContent;
+    }
+    this.textContent = ` ${value} `;
+
     return this;
   }
 
