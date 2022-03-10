@@ -5,8 +5,6 @@ import { argumentParse, fileLoader, readFile } from './util';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-// npm run build && node dist/main [filePath]
-
 async function appStart(args: string[]) {
   const targetPath = args[args.length - 1];
   const programArgs = argumentParse(args);
@@ -33,23 +31,18 @@ async function appStart(args: string[]) {
         if (tokenType === `KEYWORD`) {
           const keywordType: KeywordType = tokenizer.keyword();
           tokens.appendChild(new XML(`keyword`).setTextContent(keywordType.toLowerCase()));
-          // console.log({ tokenType, keywordType });
         } else if (tokenType === `SYMBOL`) {
           const symbol: string = tokenizer.symbol();
           tokens.appendChild(new XML(`symbol`).setTextContent(symbol));
-          // console.log({ tokenType, symbol });
         } else if (tokenType === `IDENTIFIER`) {
           const identifier: string = tokenizer.identifier();
           tokens.appendChild(new XML(`identifier`).setTextContent(identifier));
-          // console.log({ tokenType, identifier });
         } else if (tokenType === `INT_CONST`) {
           const intValue: number = tokenizer.intVal();
           tokens.appendChild(new XML(`integerConstant`).setTextContent(intValue.toString()));
-          // console.log({ tokenType, intValue });
         } else if (tokenType === `STRING_CONST`) {
           const stringValue: string = tokenizer.stringVal();
           tokens.appendChild(new XML(`stringConstant`).setTextContent(stringValue));
-          // console.log({ tokenType, stringValue });
         }
       }
       const { dir, name } = path.parse(file);
