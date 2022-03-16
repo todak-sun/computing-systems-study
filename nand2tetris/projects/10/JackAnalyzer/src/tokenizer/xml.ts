@@ -1,3 +1,13 @@
+import { fileLoader, readFile } from '../util';
+
+export class XMLReader {
+  static async fromFile(file: string) {
+    const content = await readFile(file);
+
+    const result = content.replace(/\n|\t/gi, '').replace(/\>\</gi, '>___<').split('___');
+    console.log(result);
+  }
+}
 export class XML {
   private parent: XML;
   private readonly children: XML[];

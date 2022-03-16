@@ -1,0 +1,1 @@
+npm run build && node dist/main $1

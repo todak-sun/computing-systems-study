@@ -8,7 +8,8 @@ import { XML } from './xml';
 export class JackAnalyzer {
   constructor(private readonly files: string[]) {}
 
-  async start() {
+  async analyze(): Promise<string[]> {
+    const outputPathList: string[] = [];
     for (const file of this.files) {
       const sourceCode = await readFile(file);
       const tokenizer = new JackTokenizer(sourceCode);
@@ -35,11 +36,12 @@ export class JackAnalyzer {
           const stringValue: string = tokenizer.stringVal();
           tokens.appendChild(new XML(`stringConstant`).setTextContent(stringValue));
         }
-
-        const { dir, name } = path.parse(file);
-        const outPath = path.join(dir, `${name}T.test.xml`);
-        await fs.writeFile(outPath, tokens.toXmlDocument(), { encoding: 'utf-8' });
       }
+      const { dir, name } = path.parse(file);
+      const outputPath = path.join(dir, `${name}T.test.xml`);
+      await fs.writeFile(outputPath, tokens.toXmlDocument(), { encoding: 'utf-8' });
+      outputPathList.push(outputPath)
     }
+    return outputPathList;
   }
 }

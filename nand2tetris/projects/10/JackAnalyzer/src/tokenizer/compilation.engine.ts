@@ -1,6 +1,25 @@
+import { fileLoader } from '../util';
+
 export class CompilationEngine {
-  constructor() {
+  constructor(private readonly inputPathList: string[]) {
+    const notXml = inputPathList.find((inputPath) => !inputPath.endsWith('.xml'));
+    if (notXml) {
+      throw new Error(`Only accept XML - [${notXml}]`);
+    }
     //TODO: 인수로 입력 스트림/파일, 출력 스트림/파일을 받는다.
+  }
+
+  async compile() {
+    const contents: string[][] = await Promise.all(
+      this.inputPathList.map(async (inputPath) => {
+        const contents = await fileLoader(inputPath);
+        
+        return contents;
+      })
+    );
+
+    const content = contents.flat();
+    
   }
 
   /**
@@ -67,7 +86,7 @@ export class CompilationEngine {
    * @description 하나의 항목(term)을 컴파일한다. 이 루틴에서는 몇가지 가능한 구문 분석 규칙 중 하나를 선택해야하는 조금 어려운 문제가 생길 수 있다.
    *              구체적으로 현재 토큰이 식별자(identifier)라면, 변수, 배열, 원소, 서브루튼 호출 중 하나로 구분해야 한다.
    *              이때 바로 다음 토큰을 보면 '[', '(', '.'중 하나이므로 세 가지 중 하나로 결정 가능하다.
-   *              그 외의 토큰은 다음ㅇ에 올 수 없으므로, 만약 다른 토큰이 나온다면 더 이상 진행해서는 안된다.
+   *              그 외의 토큰은 다음에 올 수 없으므로, 만약 다른 토큰이 나온다면 더 이상 진행해서는 안된다.
    */
   compileTerm(): void {}
 
