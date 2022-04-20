@@ -5,40 +5,12 @@ export class XMLReader {
     const content = await readFile(file);
     const chars = content.split('');
 
-    const tagStack: string[] = [];
-
-    let isTag: boolean = false;
-    let isCloseTag: boolean = false;
     while (chars.length) {
       let char = chars.shift();
-      if (char === `<`) {
-        isTag = true;
-        let isClose: boolean = false;
-        let tagString: string = '';
-        let valueString: string = '';
-
-        while (!isClose) {
-          char = chars.shift();
-          if (char === `>`) {
-            isClose = true;
-          } else if (char === `/`) {
-            isCloseTag = true;
-          } else {
-            tagString += char;
-          }
-        }
-
-        if(!tagStack.length){
-          tagStack.push(tagString);
-        } else {
-          let top:string  = tagStack[tagStack.length - 1]
-          if(top === tagString) {
-
-          }
-        }
-        
-      }
+      console.log(char)
     }
+
+    // console.log(xmlTagStack)
   }
 }
 export class XML {
