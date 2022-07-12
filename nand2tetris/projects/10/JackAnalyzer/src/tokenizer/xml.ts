@@ -1,4 +1,4 @@
-import { fileLoader, readFile } from '../util';
+import { readFile } from '../util';
 
 class Stack<T> {
   private readonly data: T[];
@@ -82,14 +82,25 @@ export class XMLReader {
         parent.appendChild(xml);
       }
     }
-
-    console.log(parent.toXmlDocument());
+    return parent;
   }
 }
 export class XML {
   private parent: XML;
   private readonly children: XML[];
   private textContent: string;
+
+  getTextContent() {
+    return this.textContent;
+  }
+
+  getChildren() {
+    return this.children;
+  }
+
+  getType() {
+    return this.type;
+  }
 
   constructor(private readonly type: string) {
     this.children = [];
